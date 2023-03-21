@@ -217,6 +217,12 @@ class Unpacker(object):
         Unpacker calls it with a list of key-value pairs after unpacking msgpack map.
         (See also simplejson)
 
+    :param callable string_hook:
+        NOTE: only works on the fallback implementation.
+        When specified, it should be callable.
+        Unpacker calls it with a string argument after unpacking msgpack string.
+        (See also simplejson)
+
     :param str unicode_errors:
         The error handler for decoding unicode. (default: 'strict')
         This option should be used only when you have msgpack data which
@@ -283,6 +289,7 @@ class Unpacker(object):
         object_hook=None,
         object_pairs_hook=None,
         list_hook=None,
+        string_hook=None,
         unicode_errors=None,
         max_buffer_size=100 * 1024 * 1024,
         ext_hook=ExtType,
@@ -344,6 +351,7 @@ class Unpacker(object):
         self._list_hook = list_hook
         self._object_hook = object_hook
         self._object_pairs_hook = object_pairs_hook
+        self._string_hook = string_hook
         self._ext_hook = ext_hook
         self._max_str_len = max_str_len
         self._max_bin_len = max_bin_len
@@ -596,6 +604,8 @@ class Unpacker(object):
         if typ == TYPE_RAW:
             if self._raw:
                 obj = bytes(obj)
+                if self._string_hook:
+                    obj = self._string_hook(obj)
             else:
                 obj = obj.decode("utf_8", self._unicode_errors)
             return obj
