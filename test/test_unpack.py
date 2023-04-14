@@ -49,6 +49,25 @@ def test_unpacker_hook_refcnt():
     assert sys.getrefcount(hook) == basecnt
 
 
+def test_unpacker_string_hook():
+    def remove_prefix_byte(value: bytes):
+        value = value[1:]
+        return value
+    unpacker = Unpacker(string_hook=remove_prefix_byte, raw=True)
+    data = {
+        "\x03a": {
+            "\x03b": ["\x03c"]
+        }
+    }
+    expected_result = {
+        b'a': {
+            b'b': [b'c']
+        }
+    }
+    data = packb(data)
+    unpacker.feed(data)
+    assert unpacker.unpack() == expected_result
+
 def test_unpacker_ext_hook():
     class MyUnpacker(Unpacker):
         def __init__(self):
